@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<stdbool.h>
 #include<math.h>
+#include<string.h>
 
 #define DIRECT_MAPPED 0
 #define FOUR_WAY_SET_ASSOCIATIVE 1
@@ -58,11 +59,33 @@
 		return 0;
 	}
 	int cache_size,block_size,associativity,replace_algo;
+	char *line;
+	char *token;
+	size_t size = 100;
+	line = malloc(size*sizeof(char));
+
+	getline(&line,&size,file_in);
+	token = strtok(line," ");
+	cache_size = atoi(token);
+
+	getline(&line,&size,file_in);
+	token = strtok(line," ");
+	block_size = atoi(token);
+
+
+	getline(&line,&size,file_in);
+	token = strtok(line," ");
+	associativity = atoi(token);
+
+	getline(&line,&size,file_in);
+	token = strtok(line," ");
+	replace_algo = atoi(token);
+/*
 	fscanf(file_in,"%d",&cache_size);
 	fscanf(file_in,"%d",&block_size);
 	fscanf(file_in,"%d",&associativity);
 	fscanf(file_in,"%d",&replace_algo);
-	
+	*/
 	int num_of_blocks=cache_size*1024/block_size;
 	
 	Node *hit_first=NULL,*hit_last=NULL;
@@ -298,7 +321,8 @@
 	while(hit_last!=NULL)
 	{
 		++hit;
-		fprintf(file_out," %d",hit_last->data);
+		if(hit==1) fprintf(file_out," %d",hit_last->data);
+		else fprintf(file_out,",%d",hit_last->data);
 		hit_last=hit_last->next;
 	}
 	fprintf(file_out,"\nMisses instructions:");
@@ -306,7 +330,8 @@
 	while(miss_last!=NULL)
 	{
 		++miss;
-		fprintf(file_out," %d",miss_last->data);
+		if(miss==1) fprintf(file_out," %d",miss_last->data);
+		else fprintf(file_out,",%d",miss_last->data);
 		miss_last=miss_last->next;
 	}
 	fprintf(file_out,"\nMiss rate: %f\n",(float)miss/(miss+hit));	
