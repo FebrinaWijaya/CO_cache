@@ -39,6 +39,14 @@
   struct Node *next;
 }Node;
 
+ typedef struct DoublyNode 
+{
+  int data;
+  struct DoublyNode *prev;
+  struct DoublyNode *next;
+
+}DoublyNode;
+
  int main(int argc,char *argv[])
  {
 	if(argc<5) printf("Not enough argument");
@@ -63,7 +71,6 @@
 	char *token;
 	size_t size = 100;
 	line = malloc(size*sizeof(char));
-
 	getline(&line,&size,file_in);
 	token = strtok(line," ");
 	cache_size = atoi(token);
@@ -71,7 +78,6 @@
 	getline(&line,&size,file_in);
 	token = strtok(line," ");
 	block_size = atoi(token);
-
 
 	getline(&line,&size,file_in);
 	token = strtok(line," ");
@@ -236,15 +242,37 @@
 	}
 	else if(associativity==FULLY_ASSOCIATIVE)
 	{
+
 		Cache_FullyAssociative cache[num_of_blocks];
-		int out_list[num_of_blocks];
+		//int out_list[num_of_blocks];
+		DoublyNode *out_list_first=NULL,*out_list_last=NULL;
 		int index=0;
+
 		for(index=0;index<num_of_blocks;index++)
 		{
+printf("%d ",index); 
 			cache[index].valid=false;
 			cache[index].tag=0;
 			cache[index].data=0; 
-			out_list[index]=index;
+			//out_list[index]=index;
+			if(index==0)
+			{	
+				out_list_first=(DoublyNode*)malloc(sizeof(DoublyNode));
+				out_list_first->prev=NULL;
+				out_list_first->data=0;
+				out_list_first->next=NULL;
+				//out_list_last=(DoublyNode*)malloc(sizeof(DoublyNode));
+				out_list_last=out_list_first;
+			}
+			else
+			{
+				DoublyNode *temp=(DoublyNode*)malloc(sizeof(DoublyNode));
+				temp->prev=out_list_last;
+				temp->data=index;
+				temp->next=NULL;
+				out_list_last->next=temp;
+				out_list_last=temp;
+			}
 		}
 		unsigned int addr;
 		int i=0;
@@ -275,6 +303,22 @@
 					
 					if(replace_algo==LRU) 
 					{
+						DoublyNode *temp = out_list_first;
+						while(temp!=NULL)
+						{
+							if(temp->data==index)
+							{
+								temp->prev->next=temp->next;
+								temp->next->prev=temp->prev;
+								out_list_last->next=temp;
+								temp->prev=out_list_last;
+								temp->next=NULL;
+								out_list_last=temp;
+								break;
+							}
+							temp=temp->next;
+						}
+/*
 						int k;
 						for(k=0;k<num_of_blocks;k++)
 						if(out_list[k]==index)
@@ -285,6 +329,7 @@
 							out_list[num_of_blocks-1]=index;
 							break;
 						}
+*/
 					}
 					break;
 				}
@@ -305,16 +350,24 @@
 					miss_last->data=i;
 					miss_last->next=NULL;
 				}
+				index = out_list_first->data;
+				out_list_last->next=out_list_first;
+				out_list_last=out_list_first;
+				out_list_first=out_list_first->next;
+				out_list_last->next=NULL;
+printf("%d ",i); 
+/*
 				index=out_list[0];
 				int j;
 				for(j=0;j<num_of_blocks-1;j++)
 					out_list[j]=out_list[j+1];
-				out_list[num_of_blocks-1]=index;
+				out_list[num_of_blocks-1]=index;*/
 				cache[index].valid=true;
 				cache[index].tag=tag;
 			}
 		}
 	}
+
 	int miss=0,hit=0;
 	fprintf(file_out,"Hits instructions:");
 	hit_last=hit_first;
